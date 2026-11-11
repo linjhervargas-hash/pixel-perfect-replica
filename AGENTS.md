@@ -28,3 +28,9 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Application architecture
+- Keep the prototype's persistence and confidence rules in `src/features/lj`; UI consumes the provider so a hosted data adapter can replace browser storage without rewriting pages.
+- Demo moderation is intentionally browser-local, never a security boundary; real deployment requires server-side administrator authorization and private evidence storage.
+- Keep all content routes as individual TanStack leaf files with page-specific metadata; the root owns the shared navigation, theme, data context and safety footer.
+- Centralize reusable Spanish copy and guides in the feature data modules so safety wording and future translation stay consistent.
