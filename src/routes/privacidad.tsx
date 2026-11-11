@@ -1,0 +1,3 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { LegalPage } from '@/features/lj/legal';
+export const Route=createFileRoute('/privacidad')({head:()=>({meta:[{title:'Privacidad · LJ'},{name:'description',content:'Cómo LJ cuida el anonimato y la información de los reportes. Borrador legal.'},{property:'og:title',content:'Privacidad · LJ'},{property:'og:description',content:'Cómo LJ cuida el anonimato y la información de los reportes. Borrador legal.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'}]}),component:()=> <LegalPage privacy={true}/>});

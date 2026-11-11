@@ -10,11 +10,25 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as GuiasRouteImport } from './routes/guias'
+import { Route as ReportarRouteImport } from './routes/reportar'
 import { Route as VerificarRouteImport } from './routes/verificar'
+import { Route as GuiasIndexRouteImport } from './routes/guias.index'
+import { Route as GuiasSlugRouteImport } from './routes/guias.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuiasRoute = GuiasRouteImport.update({
+  id: '/guias',
+  path: '/guias',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportarRoute = ReportarRouteImport.update({
+  id: '/reportar',
+  path: '/reportar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VerificarRoute = VerificarRouteImport.update({
@@ -22,30 +36,61 @@ const VerificarRoute = VerificarRouteImport.update({
   path: '/verificar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuiasIndexRoute = GuiasIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => GuiasRoute,
+} as any)
+const GuiasSlugRoute = GuiasSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => GuiasRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/guias': typeof GuiasRouteWithChildren
+  '/reportar': typeof ReportarRoute
   '/verificar': typeof VerificarRoute
+  '/guias/$slug': typeof GuiasSlugRoute
+  '/guias/': typeof GuiasIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/reportar': typeof ReportarRoute
   '/verificar': typeof VerificarRoute
+  '/guias/$slug': typeof GuiasSlugRoute
+  '/guias': typeof GuiasIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/guias': typeof GuiasRouteWithChildren
+  '/reportar': typeof ReportarRoute
   '/verificar': typeof VerificarRoute
+  '/guias/$slug': typeof GuiasSlugRoute
+  '/guias/': typeof GuiasIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/verificar'
+  fullPaths:
+    '/' | '/guias' | '/reportar' | '/verificar' | '/guias/$slug' | '/guias/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/verificar'
-  id: '__root__' | '/' | '/verificar'
+  to: '/' | '/reportar' | '/verificar' | '/guias/$slug' | '/guias'
+  id:
+    | '__root__'
+    | '/'
+    | '/guias'
+    | '/reportar'
+    | '/verificar'
+    | '/guias/$slug'
+    | '/guias/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  GuiasRoute: typeof GuiasRouteWithChildren
+  ReportarRoute: typeof ReportarRoute
   VerificarRoute: typeof VerificarRoute
 }
 
@@ -58,6 +103,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/guias': {
+      id: '/guias'
+      path: '/guias'
+      fullPath: '/guias'
+      preLoaderRoute: typeof GuiasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reportar': {
+      id: '/reportar'
+      path: '/reportar'
+      fullPath: '/reportar'
+      preLoaderRoute: typeof ReportarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/verificar': {
       id: '/verificar'
       path: '/verificar'
@@ -65,11 +124,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerificarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/guias/': {
+      id: '/guias/'
+      path: '/'
+      fullPath: '/guias/'
+      preLoaderRoute: typeof GuiasIndexRouteImport
+      parentRoute: typeof GuiasRoute
+    }
+    '/guias/$slug': {
+      id: '/guias/$slug'
+      path: '/$slug'
+      fullPath: '/guias/$slug'
+      preLoaderRoute: typeof GuiasSlugRouteImport
+      parentRoute: typeof GuiasRoute
+    }
   }
 }
 
+interface GuiasRouteChildren {
+  GuiasSlugRoute: typeof GuiasSlugRoute
+  GuiasIndexRoute: typeof GuiasIndexRoute
+}
+
+const GuiasRouteChildren: GuiasRouteChildren = {
+  GuiasSlugRoute: GuiasSlugRoute,
+  GuiasIndexRoute: GuiasIndexRoute,
+}
+
+const GuiasRouteWithChildren = GuiasRoute._addFileChildren(GuiasRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  GuiasRoute: GuiasRouteWithChildren,
+  ReportarRoute: ReportarRoute,
   VerificarRoute: VerificarRoute,
 }
 export const routeTree = rootRouteImport
