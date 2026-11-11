@@ -1,3 +1,74 @@
-import { Page } from '@/components/lj/shared';
-import { TriangleAlert } from 'lucide-react';
-export function LegalPage({privacy=false}:{privacy?:boolean}){const sections=privacy?[['Reportes anónimos','No necesitás una cuenta para consultar o reportar. No se publica la identidad de quien reporta. Evitá incluir tu nombre, DNI o información personal en la descripción.'],['Qué información es pública','Se muestra el dato reportado, el tipo de estafa, la cantidad de reportes aprobados, el nivel de confianza y la fecha del último reporte. Los reportes pendientes no cuentan en el verificador.'],['Email opcional y contactos','Si dejás un email, se usa solamente para novedades sobre tu reporte. Nunca se muestra públicamente. La demostración no envía emails.'],['Evidencias privadas','Las capturas y otros archivos se reservan para moderación y no se publican. Tapá tus datos personales antes de subirlos. No envíes información sensible real en este prototipo.'],['Almacenamiento de esta demostración','Los reportes, las evidencias y las solicitudes se guardan únicamente en el navegador que estás usando. Borrar los datos del sitio los elimina. La moderación de demostración puede ver esos datos locales; no existe aislamiento seguro en este prototipo.'],['Revisión y eliminación','Podés solicitar revisión mediante la página Pedir revisión. Antes de un lanzamiento real deben definirse plazos de conservación, canales para ejercer derechos, responsable del tratamiento y medidas de seguridad.']]:[['Uso de LJ','LJ ofrece información comunitaria y orientación general para prevenir estafas digitales. No presta servicios financieros, legales ni de recuperación de dinero.'],['Resultados y límites','No encontrar reportes no garantiza que un dato sea seguro. Los resultados se basan en reportes revisados y umbrales de confianza; no constituyen una sentencia ni una investigación judicial.'],['Reportes responsables','Reportá hechos según tu experiencia y no incluyas datos personales de terceros. Cada reporte queda pendiente hasta ser revisado. La moderación puede aprobar, rechazar, descartar o fusionar datos y revisar decisiones.'],['Gratuidad y seguridad','LJ nunca cobra ni te pide contraseñas. No ofrece recuperación de fondos ni garantiza que puedas recuperar dinero. Si alguien te cobra en nombre de LJ, desconfiá.'],['Solicitudes de revisión','Si un dato fue marcado por error, podés pedir revisión e indicar el motivo. No se promete un plazo de resolución en esta demostración.'],['Alcance de la demostración','Los ejemplos son ficticios y se identifican como datos de demostración. Los cambios quedan en este navegador y la moderación es simulada. Antes de publicar un servicio real, este documento debe revisarse por profesionales y completarse con jurisdicción, responsabilidades y canales de contacto.']];return <Page title={privacy?'Privacidad':'Términos de uso'} eyebrow="Transparencia"><div className="notice mb-8"><TriangleAlert size={22}/><p><strong>Borrador pendiente de revisión legal.</strong> Este contenido es un ejemplo para el prototipo, no una política definitiva.</p></div>{sections.map(([title,text])=><section key={title} className="mb-7 border-b pb-6"><h2 className="text-xl font-bold">{title}</h2><p className="mt-3 text-muted-foreground">{text}</p></section>)}</Page>;}
+import { Page } from "@/components/lj/shared";
+import { TriangleAlert } from "lucide-react";
+export function LegalPage({ privacy = false }: { privacy?: boolean }) {
+  const sections = privacy
+    ? [
+        [
+          "Reportes anónimos",
+          "No necesitás una cuenta para consultar o reportar. No se publica la identidad de quien reporta. Evitá incluir tu nombre, DNI o información personal en la descripción.",
+        ],
+        [
+          "Qué información es pública",
+          "Se muestra el dato reportado, el tipo de estafa, la cantidad de reportes aprobados, el nivel de confianza y la fecha del último reporte. Los reportes pendientes no cuentan en el verificador.",
+        ],
+        [
+          "Email opcional y contactos",
+          "Si dejás un email, se usa solamente para novedades sobre tu reporte. Nunca se muestra públicamente. La demostración no envía emails.",
+        ],
+        [
+          "Evidencias privadas",
+          "Las capturas y otros archivos se reservan para moderación y no se publican. Tapá tus datos personales antes de subirlos. No envíes información sensible real en este prototipo.",
+        ],
+        [
+          "Almacenamiento de esta demostración",
+          "Los reportes, las evidencias y las solicitudes se guardan únicamente en el navegador que estás usando. Borrar los datos del sitio los elimina. La moderación de demostración puede ver esos datos locales; no existe aislamiento seguro en este prototipo.",
+        ],
+        [
+          "Revisión y eliminación",
+          "Podés solicitar revisión mediante la página Pedir revisión. Antes de un lanzamiento real deben definirse plazos de conservación, canales para ejercer derechos, responsable del tratamiento y medidas de seguridad.",
+        ],
+      ]
+    : [
+        [
+          "Uso de LJ",
+          "LJ ofrece información comunitaria y orientación general para prevenir estafas digitales. No presta servicios financieros, legales ni de recuperación de dinero.",
+        ],
+        [
+          "Resultados y límites",
+          "No encontrar reportes no garantiza que un dato sea seguro. Los resultados se basan en reportes revisados y umbrales de confianza; no constituyen una sentencia ni una investigación judicial.",
+        ],
+        [
+          "Reportes responsables",
+          "Reportá hechos según tu experiencia y no incluyas datos personales de terceros. Cada reporte queda pendiente hasta ser revisado. La moderación puede aprobar, rechazar, descartar o fusionar datos y revisar decisiones.",
+        ],
+        [
+          "Gratuidad y seguridad",
+          "LJ nunca cobra ni te pide contraseñas. No ofrece recuperación de fondos ni garantiza que puedas recuperar dinero. Si alguien te cobra en nombre de LJ, desconfiá.",
+        ],
+        [
+          "Solicitudes de revisión",
+          "Si un dato fue marcado por error, podés pedir revisión e indicar el motivo. No se promete un plazo de resolución en esta demostración.",
+        ],
+        [
+          "Alcance de la demostración",
+          "Los ejemplos son ficticios y se identifican como datos de demostración. Los cambios quedan en este navegador y la moderación es simulada. Antes de publicar un servicio real, este documento debe revisarse por profesionales y completarse con jurisdicción, responsabilidades y canales de contacto.",
+        ],
+      ];
+  return (
+    <Page title={privacy ? "Privacidad" : "Términos de uso"} eyebrow="Transparencia">
+      <div className="notice mb-8">
+        <TriangleAlert size={22} />
+        <p>
+          <strong>Borrador pendiente de revisión legal.</strong> Este contenido es un ejemplo para
+          el prototipo, no una política definitiva.
+        </p>
+      </div>
+      {sections.map(([title, text]) => (
+        <section key={title} className="mb-7 border-b pb-6">
+          <h2 className="text-xl font-bold">{title}</h2>
+          <p className="mt-3 text-muted-foreground">{text}</p>
+        </section>
+      ))}
+    </Page>
+  );
+}

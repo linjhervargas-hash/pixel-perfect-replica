@@ -1,5 +1,57 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { ArrowRight, BriefcaseBusiness, HeartHandshake, LifeBuoy, ScanEye } from 'lucide-react';
-import { GUIDES } from '@/features/lj/guides';
-export const Route=createFileRoute('/guias/')({head:()=>({meta:[{title:'Guías para cuidarte · LJ'},{name:'description',content:'Orientación clara para prevenir estafas y saber qué hacer si ya te pasó.'},{property:'og:title',content:'Guías para cuidarte · LJ'},{property:'og:description',content:'Pasos simples, información clara y ayuda sin culpas.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'}]}),component:Guides});
-function Guides(){const icons=[LifeBuoy,HeartHandshake,BriefcaseBusiness,ScanEye];return <main className="page-main"><div className="container-lj"><span className="eyebrow">Información que te cuida</span><h1 className="page-title">Guías claras, un paso a la vez</h1><p className="mb-8 text-muted-foreground">Si algo te genera dudas o ya te pasó, no estás solo.</p><div className="grid gap-5 md:grid-cols-2">{GUIDES.map((g,i)=>{const Icon=icons[i];return <Link key={g.slug} to="/guias/$slug" params={{slug:g.slug}} className="scam-card"><div className={`icon-tile ${i===0?'bg-danger-soft text-danger':'bg-teal-soft text-teal'}`}>{Icon&&<Icon size={24}/>}</div><p className="mt-5 text-xs font-semibold text-teal">{g.category}</p><h2 className="mt-2 text-xl font-bold">{g.title}</h2><p className="mt-3 text-sm text-muted-foreground">{g.short}</p><span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary">Leer guía<ArrowRight size={16}/></span></Link>;})}</div></div></main>;}
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight, BriefcaseBusiness, HeartHandshake, LifeBuoy, ScanEye } from "lucide-react";
+import { GUIDES } from "@/features/lj/guides";
+export const Route = createFileRoute("/guias/")({
+  head: () => ({
+    meta: [
+      { title: "Guías para cuidarte · LJ" },
+      {
+        name: "description",
+        content: "Orientación clara para prevenir estafas y saber qué hacer si ya te pasó.",
+      },
+      { property: "og:title", content: "Guías para cuidarte · LJ" },
+      {
+        property: "og:description",
+        content: "Pasos simples, información clara y ayuda sin culpas.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: Guides,
+});
+function Guides() {
+  const icons = [LifeBuoy, HeartHandshake, BriefcaseBusiness, ScanEye];
+  return (
+    <main className="page-main">
+      <div className="container-lj">
+        <span className="eyebrow">Información que te cuida</span>
+        <h1 className="page-title">Guías claras, un paso a la vez</h1>
+        <p className="mb-8 text-muted-foreground">
+          Si algo te genera dudas o ya te pasó, no estás solo.
+        </p>
+        <div className="grid gap-5 md:grid-cols-2">
+          {GUIDES.map((g, i) => {
+            const Icon = icons[i];
+            return (
+              <Link key={g.slug} to="/guias/$slug" params={{ slug: g.slug }} className="scam-card">
+                <div
+                  className={`icon-tile ${i === 0 ? "bg-danger-soft text-danger" : "bg-teal-soft text-teal"}`}
+                >
+                  {Icon && <Icon size={24} />}
+                </div>
+                <p className="mt-5 text-xs font-semibold text-teal">{g.category}</p>
+                <h2 className="mt-2 text-xl font-bold">{g.title}</h2>
+                <p className="mt-3 text-sm text-muted-foreground">{g.short}</p>
+                <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary">
+                  Leer guía
+                  <ArrowRight size={16} />
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </main>
+  );
+}

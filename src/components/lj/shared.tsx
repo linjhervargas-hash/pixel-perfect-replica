@@ -1,37 +1,430 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import { Link, useNavigate } from '@tanstack/react-router';
-import { ShieldCheck, Search, Moon, Sun, Menu, X, ArrowUpRight, HeartHandshake, CheckCircle2, TriangleAlert, ShieldAlert, LockKeyhole, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { SAFETY_MESSAGE, DATA_TYPES, type Level, type getResult } from '@/features/lj/data';
-import { useData } from '@/features/lj/store';
-export function Logo() { return <Link to="/" className="logo" aria-label="LJ, inicio"><span className="logo-mark"><ShieldCheck size={36} strokeWidth={1.8}/></span><span className="logo-name">LJ<span className="text-teal">.</span></span><span className="logo-caption">Una comunidad.<br/>Más protección.</span></Link>; }
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import {
+  ShieldCheck,
+  Search,
+  Moon,
+  Sun,
+  Menu,
+  X,
+  ArrowUpRight,
+  HeartHandshake,
+  CheckCircle2,
+  TriangleAlert,
+  ShieldAlert,
+  LockKeyhole,
+  ArrowRight,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { SAFETY_MESSAGE, DATA_TYPES, type Level, type getResult } from "@/features/lj/data";
+import { useData } from "@/features/lj/store";
+export function Logo() {
+  return (
+    <Link to="/" className="logo" aria-label="LJ, inicio">
+      <span className="logo-mark">
+        <ShieldCheck size={36} strokeWidth={1.8} />
+      </span>
+      <span className="logo-name">
+        LJ<span className="text-teal">.</span>
+      </span>
+      <span className="logo-caption">
+        Una comunidad.
+        <br />
+        Más protección.
+      </span>
+    </Link>
+  );
+}
 export function Header() {
- const [open, setOpen] = useState(false); const [dark, setDark] = useState(false);
- useEffect(() => { const enabled = localStorage.getItem('lj-theme') === 'dark'; setDark(enabled); document.documentElement.classList.toggle('dark', enabled); }, []);
- function theme() { const next = !dark; setDark(next); document.documentElement.classList.toggle('dark', next); try { localStorage.setItem('lj-theme', next ? 'dark' : 'light'); } catch { /* Theme still applies for this visit. */ } }
- const nav = <><Link to="/verificar" className="nav-link" activeProps={{ className:'nav-link active' }} onClick={() => setOpen(false)}>Verificar</Link><Link to="/reportar" className="nav-link" activeProps={{ className:'nav-link active' }} onClick={() => setOpen(false)}>Reportar</Link><Link to="/guias" className="nav-link" activeProps={{ className:'nav-link active' }} onClick={() => setOpen(false)}>Guías</Link><Link to="/sobre" className="nav-link" activeProps={{ className:'nav-link active' }} onClick={() => setOpen(false)}>Sobre LJ</Link></>;
- return <header className="site-header"><div className="container-lj relative flex items-center justify-between gap-4"><Logo/><nav className="hidden items-center gap-8 md:flex" aria-label="Navegación principal">{nav}</nav><div className="flex items-center gap-3"><Button variant="ghost" size="icon" aria-label={dark ? 'Activar modo claro' : 'Activar modo oscuro'} title={dark ? 'Modo claro' : 'Modo oscuro'} onClick={theme}>{dark ? <Sun/> : <Moon/>}</Button><Button asChild variant="outline" size="sm" className="hidden md:inline-flex"><Link to="/guias/$slug" params={{ slug:'me-estafaron' }}><HeartHandshake/>Me estafaron</Link></Button><Button variant="ghost" size="icon" className="md:hidden" aria-label={open ? 'Cerrar menú' : 'Abrir menú'} aria-expanded={open} onClick={() => setOpen(!open)}>{open ? <X/> : <Menu/>}</Button></div>{open && <nav className="absolute top-full right-0 left-0 z-30 mt-3 flex flex-col gap-1 rounded-lg border bg-card p-5 shadow-lg md:hidden" aria-label="Menú móvil">{nav}<Link to="/guias/$slug" params={{ slug:'me-estafaron' }} className="nav-link" onClick={() => setOpen(false)}>Me estafaron, qué hago <ArrowRight size={16}/></Link></nav>}</div></header>;
+  const [open, setOpen] = useState(false);
+  const [dark, setDark] = useState(false);
+  useEffect(() => {
+    const enabled = localStorage.getItem("lj-theme") === "dark";
+    setDark(enabled);
+    document.documentElement.classList.toggle("dark", enabled);
+  }, []);
+  function theme() {
+    const next = !dark;
+    setDark(next);
+    document.documentElement.classList.toggle("dark", next);
+    try {
+      localStorage.setItem("lj-theme", next ? "dark" : "light");
+    } catch {
+      /* Theme still applies for this visit. */
+    }
+  }
+  const nav = (
+    <>
+      <Link
+        to="/verificar"
+        className="nav-link"
+        activeProps={{ className: "nav-link active" }}
+        onClick={() => setOpen(false)}
+      >
+        Verificar
+      </Link>
+      <Link
+        to="/reportar"
+        className="nav-link"
+        activeProps={{ className: "nav-link active" }}
+        onClick={() => setOpen(false)}
+      >
+        Reportar
+      </Link>
+      <Link
+        to="/guias"
+        className="nav-link"
+        activeProps={{ className: "nav-link active" }}
+        onClick={() => setOpen(false)}
+      >
+        Guías
+      </Link>
+      <Link
+        to="/sobre"
+        className="nav-link"
+        activeProps={{ className: "nav-link active" }}
+        onClick={() => setOpen(false)}
+      >
+        Sobre LJ
+      </Link>
+    </>
+  );
+  return (
+    <header className="site-header">
+      <div className="container-lj relative flex items-center justify-between gap-4">
+        <Logo />
+        <nav className="hidden items-center gap-8 md:flex" aria-label="Navegación principal">
+          {nav}
+        </nav>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={dark ? "Activar modo claro" : "Activar modo oscuro"}
+            title={dark ? "Modo claro" : "Modo oscuro"}
+            onClick={theme}
+          >
+            {dark ? <Sun /> : <Moon />}
+          </Button>
+          <Button asChild variant="outline" size="sm" className="hidden md:inline-flex">
+            <Link to="/guias/$slug" params={{ slug: "me-estafaron" }}>
+              <HeartHandshake />
+              Me estafaron
+            </Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            aria-label={open ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={open}
+            onClick={() => setOpen(!open)}
+          >
+            {open ? <X /> : <Menu />}
+          </Button>
+        </div>
+        {open && (
+          <nav
+            className="absolute top-full right-0 left-0 z-30 mt-3 flex flex-col gap-1 rounded-lg border bg-card p-5 shadow-lg md:hidden"
+            aria-label="Menú móvil"
+          >
+            {nav}
+            <Link
+              to="/guias/$slug"
+              params={{ slug: "me-estafaron" }}
+              className="nav-link"
+              onClick={() => setOpen(false)}
+            >
+              Me estafaron, qué hago <ArrowRight size={16} />
+            </Link>
+          </nav>
+        )}
+      </div>
+    </header>
+  );
 }
-export function SafetyMessage({ compact = false }: { compact?: boolean }) { return <div className={`flex items-start gap-3 ${compact ? 'text-xs' : 'text-sm'}`}><ShieldCheck className="mt-0.5 shrink-0 text-teal" size={compact ? 17 : 21}/><p className="text-muted-foreground">{SAFETY_MESSAGE}</p></div>; }
-export function Footer() { return <footer className="site-footer"><div className="container-lj"><div className="flex flex-col justify-between gap-6 md:flex-row md:items-center"><Logo/><div className="max-w-xl"><SafetyMessage compact/></div></div><div className="mt-7 flex flex-col justify-between gap-4 border-t pt-5 text-xs text-muted-foreground md:flex-row"><p>© {new Date().getFullYear()} LJ · Cuidarnos es una tarea compartida.</p><nav aria-label="Enlaces del pie" className="flex flex-wrap gap-5"><Link to="/terminos">Términos</Link><Link to="/privacidad">Privacidad</Link><Link to="/revision">Pedir revisión</Link><Link to="/admin">Moderación</Link></nav></div></div></footer>; }
-export function Shell({ children }: { children: ReactNode }) { const { storageError } = useData(); return <><a href="#contenido" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-card focus:p-4">Ir al contenido</a><Header/>{storageError && <div role="alert" className="notice container-lj my-4"><TriangleAlert size={20}/>{storageError}</div>}<div id="contenido">{children}</div><Footer/></>; }
-export function SearchBox({ initial = '', onSearch }: { initial?: string; onSearch?: (q: string, type?: string) => void }) {
- const [value,setValue] = useState(initial); const [error,setError] = useState(''); const navigate = useNavigate();
- useEffect(() => { setValue(initial); }, [initial]);
- function submit(e: FormEvent) { e.preventDefault(); if (!value.trim()) { setError('Pegá el dato que querés verificar.'); return; } setError(''); if(onSearch) onSearch(value.trim()); else navigate({ to:'/verificar', search:{ q:value.trim() } }); }
- return <form onSubmit={submit}><label htmlFor="dato-busqueda" className="sr-only">Dato que querés verificar</label><div className="search-box"><Search className="search-icon" size={21}/><input id="dato-busqueda" value={value} onChange={e => { setValue(e.target.value);setError(''); }} placeholder="Pegá acá un teléfono, link, usuario, email, billetera o CBU" autoComplete="off" aria-invalid={!!error} aria-describedby={error ? 'search-error' : undefined}/><Button type="submit"><Search size={16}/>Verificar</Button></div>{error && <p id="search-error" role="alert" className="mt-2 text-sm text-danger">{error}</p>}</form>;
+export function SafetyMessage({ compact = false }: { compact?: boolean }) {
+  return (
+    <div className={`flex items-start gap-3 ${compact ? "text-xs" : "text-sm"}`}>
+      <ShieldCheck className="mt-0.5 shrink-0 text-teal" size={compact ? 17 : 21} />
+      <p className="text-muted-foreground">{SAFETY_MESSAGE}</p>
+    </div>
+  );
 }
-export function Page({ title, intro, children, eyebrow }: { title:string; intro?:string; children:ReactNode; eyebrow?:string }) { return <main className="page-main"><div className="container-lj"><div className="content-narrow">{eyebrow && <span className="eyebrow">{eyebrow}</span>}<h1 className="page-title">{title}</h1>{intro && <p className="mb-8 text-muted-foreground">{intro}</p>}{children}</div></div></main>; }
-export function ScamBadge({ children }: { children: ReactNode }) { return <span className="chip bg-card text-muted-foreground">{children}</span>; }
-const RESULT_COPY: Record<Level,{ title:string; text:string }> = {
- none: { title:'Sin reportes',text:'No encontramos reportes de este dato. Eso no significa que sea seguro: si algo te parece raro, no pagues ni compartas claves.' },
- warning: { title:'Reportado, sin confirmar',text:'Este dato fue reportado, pero todavía no está confirmado. Tené cuidado y no hagas ningún pago.' },
- danger: { title:'Muy probable estafa',text:'Muy probable estafa. Varias personas lo reportaron. No respondas, no hagas pagos y no compartas claves ni códigos.' },
+export function Footer() {
+  return (
+    <footer className="site-footer">
+      <div className="container-lj">
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
+          <Logo />
+          <div className="max-w-xl">
+            <SafetyMessage compact />
+          </div>
+        </div>
+        <div className="mt-7 flex flex-col justify-between gap-4 border-t pt-5 text-xs text-muted-foreground md:flex-row">
+          <p>© {new Date().getFullYear()} LJ · Cuidarnos es una tarea compartida.</p>
+          <nav aria-label="Enlaces del pie" className="flex flex-wrap gap-5">
+            <Link to="/terminos">Términos</Link>
+            <Link to="/privacidad">Privacidad</Link>
+            <Link to="/revision">Pedir revisión</Link>
+            <Link to="/admin">Moderación</Link>
+          </nav>
+        </div>
+      </div>
+    </footer>
+  );
+}
+export function Shell({ children }: { children: ReactNode }) {
+  const { storageError } = useData();
+  return (
+    <>
+      <a
+        href="#contenido"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-card focus:p-4"
+      >
+        Ir al contenido
+      </a>
+      <Header />
+      {storageError && (
+        <div role="alert" className="notice container-lj my-4">
+          <TriangleAlert size={20} />
+          {storageError}
+        </div>
+      )}
+      <div id="contenido">{children}</div>
+      <Footer />
+    </>
+  );
+}
+export function SearchBox({
+  initial = "",
+  onSearch,
+}: {
+  initial?: string;
+  onSearch?: (q: string, type?: string) => void;
+}) {
+  const [value, setValue] = useState(initial);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+  useEffect(() => {
+    setValue(initial);
+  }, [initial]);
+  function submit(e: FormEvent) {
+    e.preventDefault();
+    if (!value.trim()) {
+      setError("Pegá el dato que querés verificar.");
+      return;
+    }
+    setError("");
+    if (onSearch) onSearch(value.trim());
+    else navigate({ to: "/verificar", search: { q: value.trim() } });
+  }
+  return (
+    <form onSubmit={submit}>
+      <label htmlFor="dato-busqueda" className="sr-only">
+        Dato que querés verificar
+      </label>
+      <div className="search-box">
+        <Search className="search-icon" size={21} />
+        <input
+          id="dato-busqueda"
+          value={value}
+          onChange={(e) => {
+            setValue(e.target.value);
+            setError("");
+          }}
+          placeholder="Pegá acá un teléfono, link, usuario, email, billetera o CBU"
+          autoComplete="off"
+          aria-invalid={!!error}
+          aria-describedby={error ? "search-error" : undefined}
+        />
+        <Button type="submit">
+          <Search size={16} />
+          Verificar
+        </Button>
+      </div>
+      {error && (
+        <p id="search-error" role="alert" className="mt-2 text-sm text-danger">
+          {error}
+        </p>
+      )}
+    </form>
+  );
+}
+export function Page({
+  title,
+  intro,
+  children,
+  eyebrow,
+}: {
+  title: string;
+  intro?: string;
+  children: ReactNode;
+  eyebrow?: string;
+}) {
+  return (
+    <main className="page-main">
+      <div className="container-lj">
+        <div className="content-narrow">
+          {eyebrow && <span className="eyebrow">{eyebrow}</span>}
+          <h1 className="page-title">{title}</h1>
+          {intro && <p className="mb-8 text-muted-foreground">{intro}</p>}
+          {children}
+        </div>
+      </div>
+    </main>
+  );
+}
+export function ScamBadge({ children }: { children: ReactNode }) {
+  return <span className="chip bg-card text-muted-foreground">{children}</span>;
+}
+const RESULT_COPY: Record<Level, { title: string; text: string }> = {
+  none: {
+    title: "Sin reportes",
+    text: "No encontramos reportes de este dato. Eso no significa que sea seguro: si algo te parece raro, no pagues ni compartas claves.",
+  },
+  warning: {
+    title: "Reportado, sin confirmar",
+    text: "Este dato fue reportado, pero todavía no está confirmado. Tené cuidado y no hagas ningún pago.",
+  },
+  danger: {
+    title: "Muy probable estafa",
+    text: "Muy probable estafa. Varias personas lo reportaron. No respondas, no hagas pagos y no compartas claves ni códigos.",
+  },
 };
-export function ResultCard({ result, value, type }: { result: ReturnType<typeof getResult>; value:string; type:string }) {
- const Icon = result.level === 'none' ? CheckCircle2 : result.level === 'warning' ? TriangleAlert : ShieldAlert;
- return <div className="fade-in"><article className={`result-card result-${result.level}`} aria-live="polite"><div className="flex items-start gap-4"><Icon className="shrink-0" size={35}/><div className="min-w-0"><p className="mb-1 text-xs font-semibold uppercase">Resultado de la consulta</p><h2 className="text-2xl font-bold">{RESULT_COPY[result.level].title}</h2></div></div><p className="mt-5 break-all text-lg font-bold">{value}</p><p className="mt-1 text-xs">{type} · Normalizado: {result.normalized}</p><p className="mt-5">{RESULT_COPY[result.level].text}</p>{result.entity?.demo && <p className="mt-4 text-xs font-semibold">Dato ficticio de demostración</p>}{result.level !== 'none' && <div className="mt-5 border-t border-current/20 pt-4"><div className="flex flex-wrap gap-4 text-sm"><strong>{result.approved} {result.approved === 1 ? 'reporte aprobado' : 'reportes aprobados'}</strong><span>Último reporte: {result.lastReport ? new Date(result.lastReport + 'T12:00:00').toLocaleDateString('es-AR') : 'Confirmado por moderación'}</span></div><div className="mt-3 flex flex-wrap gap-2">{result.scams.map(s => <ScamBadge key={s}>{s}</ScamBadge>)}</div></div>}</article><div className="mt-5 flex flex-wrap gap-3"><Button asChild><Link to="/reportar" search={{ dato:value,tipo:type }}><ShieldAlert/>Reportar este dato</Link></Button><Button asChild variant="outline"><Link to="/guias/$slug" params={{ slug:'me-estafaron' }}>Qué hacer ahora<ArrowUpRight/></Link></Button></div><div className="mt-6"><SafetyMessage/></div></div>;
+export function ResultCard({
+  result,
+  value,
+  type,
+}: {
+  result: ReturnType<typeof getResult>;
+  value: string;
+  type: string;
+}) {
+  const Icon =
+    result.level === "none"
+      ? CheckCircle2
+      : result.level === "warning"
+        ? TriangleAlert
+        : ShieldAlert;
+  return (
+    <div className="fade-in">
+      <article className={`result-card result-${result.level}`} aria-live="polite">
+        <div className="flex items-start gap-4">
+          <Icon className="shrink-0" size={35} />
+          <div className="min-w-0">
+            <p className="mb-1 text-xs font-semibold uppercase">Resultado de la consulta</p>
+            <h2 className="text-2xl font-bold">{RESULT_COPY[result.level].title}</h2>
+          </div>
+        </div>
+        <p className="mt-5 break-all text-lg font-bold">{value}</p>
+        <p className="mt-1 text-xs">
+          {type} · Normalizado: {result.normalized}
+        </p>
+        <p className="mt-5">{RESULT_COPY[result.level].text}</p>
+        {result.entity?.demo && (
+          <p className="mt-4 text-xs font-semibold">Dato ficticio de demostración</p>
+        )}
+        {result.level !== "none" && (
+          <div className="mt-5 border-t border-current/20 pt-4">
+            <div className="flex flex-wrap gap-4 text-sm">
+              <strong>
+                {result.approved}{" "}
+                {result.approved === 1 ? "reporte aprobado" : "reportes aprobados"}
+              </strong>
+              <span>
+                Último reporte:{" "}
+                {result.lastReport
+                  ? new Date(result.lastReport + "T12:00:00").toLocaleDateString("es-AR")
+                  : "Confirmado por moderación"}
+              </span>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {result.scams.map((s) => (
+                <ScamBadge key={s}>{s}</ScamBadge>
+              ))}
+            </div>
+          </div>
+        )}
+      </article>
+      <div className="mt-5 flex flex-wrap gap-3">
+        <Button asChild>
+          <Link to="/reportar" search={{ dato: value, tipo: type }}>
+            <ShieldAlert />
+            Reportar este dato
+          </Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link to="/guias/$slug" params={{ slug: "me-estafaron" }}>
+            Qué hacer ahora
+            <ArrowUpRight />
+          </Link>
+        </Button>
+      </div>
+      <div className="mt-6">
+        <SafetyMessage />
+      </div>
+    </div>
+  );
 }
-export function TypeSelect({ value, onChange }: { value:string;onChange:(v:string)=>void }) { return <div className="form-field"><label htmlFor="tipo-detectado">¿Qué tipo de dato es?</label><select id="tipo-detectado" value={value} onChange={e => onChange(e.target.value)}><option value="">Elegí el tipo de dato</option>{DATA_TYPES.map(t => <option key={t}>{t}</option>)}</select></div>; }
-export function EmptyState({ title, text }: {title:string;text:string}) { return <div className="py-14 text-center"><LockKeyhole className="mx-auto mb-4 text-teal" size={38}/><h2 className="text-xl font-semibold">{title}</h2><p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">{text}</p></div>; }
-export function Confirmation({ title, text, report = false }: { title:string;text:string;report?:boolean }) { return <div className="py-10 text-center fade-in"><CheckCircle2 size={53} className="mx-auto mb-6 text-success"/><h2 className="text-3xl font-bold">{title}</h2><p className="mx-auto mt-4 max-w-lg text-muted-foreground">{text}</p><div className="mt-8 flex flex-wrap justify-center gap-3"><Button asChild><Link to="/">Volver al inicio<ArrowRight/></Link></Button>{report && <Button variant="outline" onClick={() => window.location.assign('/reportar')}>Reportar otro dato</Button>}</div>{report && <Link to="/guias/$slug" params={{slug:'me-estafaron'}} className="mt-6 inline-block text-sm text-primary underline">Leer qué hacer si te estafaron</Link>}</div>; }
+export function TypeSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="form-field">
+      <label htmlFor="tipo-detectado">¿Qué tipo de dato es?</label>
+      <select id="tipo-detectado" value={value} onChange={(e) => onChange(e.target.value)}>
+        <option value="">Elegí el tipo de dato</option>
+        {DATA_TYPES.map((t) => (
+          <option key={t}>{t}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+export function EmptyState({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="py-14 text-center">
+      <LockKeyhole className="mx-auto mb-4 text-teal" size={38} />
+      <h2 className="text-xl font-semibold">{title}</h2>
+      <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">{text}</p>
+    </div>
+  );
+}
+export function Confirmation({
+  title,
+  text,
+  report = false,
+}: {
+  title: string;
+  text: string;
+  report?: boolean;
+}) {
+  return (
+    <div className="py-10 text-center fade-in">
+      <CheckCircle2 size={53} className="mx-auto mb-6 text-success" />
+      <h2 className="text-3xl font-bold">{title}</h2>
+      <p className="mx-auto mt-4 max-w-lg text-muted-foreground">{text}</p>
+      <div className="mt-8 flex flex-wrap justify-center gap-3">
+        <Button asChild>
+          <Link to="/">
+            Volver al inicio
+            <ArrowRight />
+          </Link>
+        </Button>
+        {report && (
+          <Button variant="outline" onClick={() => window.location.assign("/reportar")}>
+            Reportar otro dato
+          </Button>
+        )}
+      </div>
+      {report && (
+        <Link
+          to="/guias/$slug"
+          params={{ slug: "me-estafaron" }}
+          className="mt-6 inline-block text-sm text-primary underline"
+        >
+          Leer qué hacer si te estafaron
+        </Link>
+      )}
+    </div>
+  );
+}
