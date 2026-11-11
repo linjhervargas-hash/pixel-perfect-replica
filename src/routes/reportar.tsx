@@ -1,0 +1,41 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { Page } from "@/components/lj/shared";
+import { ReportForm } from "@/components/lj/report-form";
+export const Route = createFileRoute("/reportar")({
+  validateSearch: (
+    s: Record<string, unknown>,
+  ): { dato?: string | undefined; tipo?: string | undefined } => ({
+    dato: typeof s["dato"] === "string" ? s["dato"] : undefined,
+    tipo: typeof s["tipo"] === "string" ? s["tipo"] : undefined,
+  }),
+  head: () => ({
+    meta: [
+      { title: "Reportar una estafa · LJ" },
+      {
+        name: "description",
+        content:
+          "Compartí tu experiencia de forma anónima para ayudar a prevenir estafas digitales.",
+      },
+      { property: "og:title", content: "Reportar una estafa · LJ" },
+      {
+        property: "og:description",
+        content: "Tu aviso ayuda a cuidar a otras personas. Sin registro, sin culpas.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: ReportPage,
+});
+function ReportPage() {
+  const { dato, tipo } = Route.useSearch();
+  return (
+    <Page
+      title="Tu experiencia puede cuidar a alguien"
+      intro="Contanos qué pasó. Revisamos cada reporte antes de mostrarlo públicamente."
+      eyebrow="Reportar una estafa"
+    >
+      <ReportForm initialValue={dato} initialType={tipo} />
+    </Page>
+  );
+}

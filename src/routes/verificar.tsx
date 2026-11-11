@@ -1,0 +1,123 @@
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { RotateCcw, Search, Info } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Page, SearchBox, ResultCard, TypeSelect, EmptyState } from "@/components/lj/shared";
+import { detectType, getResult } from "@/features/lj/data";
+import { useData } from "@/features/lj/store";
+export const Route = createFileRoute("/verificar")({
+  validateSearch: (
+    s: Record<string, unknown>,
+  ): { q?: string | undefined; tipo?: string | undefined } => ({
+    q: typeof s["q"] === "string" ? s["q"] : undefined,
+    tipo: typeof s["tipo"] === "string" ? s["tipo"] : undefined,
+  }),
+  head: () => ({
+    meta: [
+      { title: "Verificar un dato · LJ" },
+      {
+        name: "description",
+        content: "Consultá teléfonos, links y usuarios reportados por la comunidad de LJ.",
+      },
+      { property: "og:title", content: "Verificar un dato · LJ" },
+      {
+        property: "og:description",
+        content: "Verificá antes de responder. Sin reportes no significa seguro.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: Verifier,
+});
+function Verifier() {
+  const { q = "", tipo = "" } = Route.useSearch();
+  const navigate = useNavigate();
+  const { store, ready, update } = useData();
+  const [type, setType] = useState(tipo || detectType(q) || "");
+  const [loading, setLoading] = useState(false);
+  const counted = useRef("");
+  useEffect(() => {
+    setType(tipo || detectType(q) || "");
+  }, [q, tipo]);
+  useEffect(() => {
+    if (!q || !ready || !type) return;
+    setLoading(true);
+    const timer = setTimeout(() => {
+      setLoading(false);
+      if (counted.current !== q) {
+        counted.current = q;
+        update((s) => ({ ...s, queries: s.queries + 1 }));
+      }
+    }, 380);
+    return () => clearTimeout(timer);
+  }, [q, type, ready]);
+  const search = (value: string) => navigate({ to: "/verificar", search: { q: value } });
+  return (
+    <Page
+      title="Verificá un dato"
+      intro="Antes de responder, pagar o compartir información, consultá qué reportó la comunidad."
+      eyebrow="Verificador comunitario"
+    >
+      <SearchBox initial={q} onSearch={search} />
+      <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+        <Info size={14} />
+        Solo cuentan los reportes revisados y aprobados.
+      </div>
+      {q && !detectType(q) && !tipo && (
+        <div className="mt-6">
+          <p className="mb-3 text-sm text-muted-foreground">
+            No pudimos reconocer el formato. Elegí el tipo para continuar.
+          </p>
+          <TypeSelect value={type} onChange={setType} />
+        </div>
+      )}
+      <div className="mt-8">
+        {!q ? (
+          <>
+            <EmptyState
+              title="Cada consulta es un primer paso"
+              text="Pegá el dato que te genera dudas. No hace falta crear una cuenta."
+            />
+            <div className="border-t pt-5">
+              <p className="text-xs font-semibold text-muted-foreground">
+                Probá con un dato ficticio
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {["+54 9 11 0000-0000", "ayuda@recuperacion.test", "sin-reportes.test"].map((v) => (
+                  <Button key={v} variant="outline" size="sm" onClick={() => search(v)}>
+                    <Search size={13} />
+                    {v}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : loading || !ready ? (
+          <div
+            role="status"
+            aria-label="Buscando reportes"
+            className="animate-pulse space-y-5 rounded-lg border bg-muted p-8"
+          >
+            <div className="h-7 w-2/3 rounded bg-border" />
+            <div className="h-5 w-1/2 rounded bg-border" />
+            <div className="h-20 rounded bg-border" />
+            <p className="text-sm text-muted-foreground">Buscando reportes…</p>
+          </div>
+        ) : type ? (
+          <>
+            <ResultCard result={getResult(store, q, type)} value={q} type={type} />
+            <Button
+              variant="ghost"
+              className="mt-4"
+              onClick={() => navigate({ to: "/verificar", search: {} })}
+            >
+              <RotateCcw />
+              Nueva consulta
+            </Button>
+          </>
+        ) : null}
+      </div>
+    </Page>
+  );
+}

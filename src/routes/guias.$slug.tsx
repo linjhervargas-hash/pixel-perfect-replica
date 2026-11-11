@@ -1,0 +1,77 @@
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
+import { GUIDES } from "@/features/lj/guides";
+import { Page, SafetyMessage } from "@/components/lj/shared";
+import { Button } from "@/components/ui/button";
+export const Route = createFileRoute("/guias/$slug")({
+  loader: ({ params }) => {
+    const guide = GUIDES.find((g) => g.slug === params.slug);
+    if (!guide) throw notFound();
+    return guide;
+  },
+  head: ({ loaderData: g }) => ({
+    meta: [
+      { title: g ? `${g.title} · LJ` : "Guía no disponible · LJ" },
+      { name: "description", content: g?.short ?? "Guías de prevención de estafas de LJ." },
+      { property: "og:title", content: g ? `${g.title} · LJ` : "Guía no disponible · LJ" },
+      { property: "og:description", content: g?.short ?? "Información para cuidarte." },
+      { property: "og:type", content: "article" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: GuidePage,
+});
+export function GuideStep({
+  number,
+  title,
+  text,
+}: {
+  number: number;
+  title: string;
+  text: string;
+}) {
+  return (
+    <section className="guide-step">
+      <span className="step-number">{number}</span>
+      <div>
+        <h2 className="text-lg font-bold">{title}</h2>
+        <p className="mt-3 text-muted-foreground">{text}</p>
+      </div>
+    </section>
+  );
+}
+function GuidePage() {
+  const g = Route.useLoaderData();
+  return (
+    <Page title={g.title} eyebrow={g.category}>
+      <Link to="/guias" className="mb-6 inline-flex items-center gap-2 text-sm text-primary">
+        <ArrowLeft size={16} />
+        Todas las guías
+      </Link>
+      <p className="mb-6 text-lg text-muted-foreground">{g.intro}</p>
+      {g.rule && (
+        <div className="notice mb-5">
+          <ShieldCheck size={22} />
+          <strong>{g.rule}</strong>
+        </div>
+      )}
+      {g.steps.map((s, i) => (
+        <GuideStep key={s.title} number={i + 1} {...s} />
+      ))}
+      <div className="mt-8 flex flex-wrap gap-3">
+        <Button asChild>
+          <Link to="/reportar">
+            Reportar una estafa
+            <ArrowRight />
+          </Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link to="/verificar">Verificar un dato</Link>
+        </Button>
+      </div>
+      <div className="mt-8">
+        <SafetyMessage />
+      </div>
+    </Page>
+  );
+}

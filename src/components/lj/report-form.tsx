@@ -1,0 +1,550 @@
+import { useState, type FormEvent, type ReactNode } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { ArrowRight, ArrowLeft, LockKeyhole, ImagePlus, X, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  CHANNELS,
+  COUNTRIES,
+  DATA_TYPES,
+  SCAM_TYPES,
+  normalize,
+  validDate,
+  validEvidenceCount,
+  type Report,
+} from "@/features/lj/data";
+import { useData } from "@/features/lj/store";
+import { Confirmation } from "./shared";
+interface Values {
+  type: string;
+  value: string;
+  scam: string;
+  channels: string[];
+  date: string;
+  country: string;
+  description: string;
+  amount: string;
+  currency: string;
+  email: string;
+  truth: boolean;
+}
+type Errors = Partial<Record<keyof Values | "evidence", string | undefined>>;
+function Field({
+  label,
+  help,
+  error,
+  children,
+  id,
+}: {
+  label: string;
+  help?: string | undefined;
+  error?: string | undefined;
+  children: ReactNode;
+  id: string;
+}) {
+  return (
+    <div className="form-field">
+      <label htmlFor={id}>{label}</label>
+      {children}
+      {help && (
+        <p className="field-help" id={`${id}-help`}>
+          {help}
+        </p>
+      )}
+      {error && (
+        <p role="alert" className="text-xs text-danger">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+export function ReportForm({
+  initialValue = "",
+  initialType = "",
+}: {
+  initialValue?: string | undefined;
+  initialType?: string | undefined;
+}) {
+  const { update, source } = useData();
+  const navigate = useNavigate();
+  const [step, setStep] = useState(0);
+  const [done, setDone] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [errors, setErrors] = useState<Errors>({});
+  const [submitError, setSubmitError] = useState("");
+  const [v, setV] = useState<Values>({
+    type: initialType,
+    value: initialValue,
+    scam: "",
+    channels: [],
+    date: "",
+    country: "",
+    description: "",
+    amount: "",
+    currency: "ARS",
+    email: "",
+    truth: false,
+  });
+  const [evidence, setEvidence] = useState<string[]>([]);
+  const today = new Date().toLocaleDateString("en-CA");
+  function set<K extends keyof Values>(key: K, value: Values[K]) {
+    setV((s) => ({ ...s, [key]: value }));
+    setErrors((s) => ({ ...s, [key]: undefined }));
+  }
+  function validate(stage: number): Errors {
+    const e: Errors = {};
+    if (stage === 0) {
+      if (!v.type) e.type = "Elegí qué querés reportar.";
+      if (!v.value.trim()) e.value = "Pegá el dato exacto que querés reportar.";
+      if (!v.scam) e.scam = "Elegí el tipo de estafa.";
+    }
+    if (stage === 1) {
+      if (!v.channels.length) e.channels = "Elegí al menos un canal de contacto.";
+      if (!validDate(v.date, today)) e.date = "Elegí una fecha válida que no sea futura.";
+      if (!v.country) e.country = "Elegí tu país.";
+      if (!v.description.trim()) e.description = "Contanos brevemente qué pasó.";
+      if (v.description.length > 500) e.description = "El texto puede tener hasta 500 caracteres.";
+    }
+    if (stage === 2) {
+      if (v.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.email))
+        e.email = "Revisá el email: parece incompleto.";
+      if (v.amount && (Number(v.amount) < 0 || !Number.isFinite(Number(v.amount))))
+        e.amount = "Ingresá un monto válido, mayor o igual a cero.";
+      if (!v.truth) e.truth = "Confirmá que el reporte refleja tu experiencia.";
+    }
+    return e;
+  }
+  function next() {
+    const e = validate(step);
+    setErrors(e);
+    if (!Object.keys(e).length) {
+      setStep(step + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+  async function files(selected: FileList | null) {
+    if (!selected) return;
+    const accepted = Array.from(selected);
+    if (!validEvidenceCount(evidence.length + accepted.length)) {
+      setErrors((s) => ({ ...s, evidence: "Podés subir hasta 5 imágenes." }));
+      return;
+    }
+    if (accepted.some((f) => !["image/jpeg", "image/png", "image/webp"].includes(f.type))) {
+      setErrors((s) => ({ ...s, evidence: "Usá imágenes JPG, PNG o WEBP." }));
+      return;
+    }
+    if (accepted.some((f) => f.size > 3 * 1024 * 1024)) {
+      setErrors((s) => ({ ...s, evidence: "Cada imagen puede pesar hasta 3 MB." }));
+      return;
+    }
+    setBusy(true);
+    try {
+      const images = await Promise.all(
+        accepted.map(
+          (f) =>
+            new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () =>
+                typeof reader.result === "string" ? resolve(reader.result) : reject();
+              reader.onerror = reject;
+              reader.readAsDataURL(f);
+            }),
+        ),
+      );
+      setEvidence((s) => [...s, ...images]);
+      setErrors((s) => ({ ...s, evidence: undefined }));
+    } catch {
+      setErrors((s) => ({
+        ...s,
+        evidence: "No pudimos leer una imagen. Intentá subirla de nuevo.",
+      }));
+    } finally {
+      setBusy(false);
+    }
+  }
+  function submit(e: FormEvent) {
+    e.preventDefault();
+    if (step < 2) {
+      next();
+      return;
+    }
+    const errors = validate(2);
+    setErrors(errors);
+    if (Object.keys(errors).length) return;
+    setBusy(true);
+    try {
+      const now = new Date().toISOString();
+      const sourceId = source();
+      update((store) => {
+        const normalized = normalize(v.value, v.type);
+        let entity = store.entities.find(
+          (e) =>
+            e.normalized === normalized &&
+            (e.type === v.type ||
+              (["Teléfono", "Número de WhatsApp"].includes(e.type) &&
+                ["Teléfono", "Número de WhatsApp"].includes(v.type)) ||
+              (e.type.includes("Usuario") && v.type.includes("Usuario"))),
+        );
+        const entities = [...store.entities];
+        if (!entity) {
+          entity = {
+            id: crypto.randomUUID(),
+            type: v.type,
+            original: v.value.trim(),
+            normalized,
+            state: "sin verificar",
+            demo: false,
+          };
+          entities.push(entity);
+        }
+        const report: Report = {
+          id: crypto.randomUUID(),
+          entityId: entity.id,
+          type: v.type,
+          value: v.value.trim(),
+          scam: v.scam,
+          channels: v.channels,
+          date: v.date,
+          country: v.country,
+          description: v.description.trim(),
+          amount: v.amount,
+          currency: v.currency,
+          email: v.email,
+          evidence,
+          source: sourceId,
+          status: "Pendiente",
+          createdAt: now,
+          demo: false,
+        };
+        return { ...store, entities, reports: [...store.reports, report] };
+      });
+      setDone(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch {
+      setSubmitError("No pudimos enviar el reporte. Tu información sigue acá: volvé a intentar.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  if (done)
+    return (
+      <Confirmation
+        title="Gracias por reportar."
+        text="Tu aviso ayuda a que otras personas no caigan. Vamos a revisarlo antes de mostrarlo públicamente."
+        report
+      />
+    );
+  return (
+    <>
+      <div className="notice mb-7">
+        <LockKeyhole size={20} />
+        <div>
+          <strong>Tu reporte es anónimo.</strong> No necesitás crear una cuenta.
+          <p className="mt-1 text-xs">
+            Demostración: la información se guarda solo en este navegador. No envíes datos
+            personales reales.
+          </p>
+        </div>
+      </div>
+      <div className="mb-8">
+        <div className="flex justify-between gap-3">
+          {["El dato", "Tu experiencia", "Evidencia y envío"].map((title, i) => (
+            <div
+              key={title}
+              className={`flex items-center gap-2 text-xs ${i <= step ? "font-semibold text-primary" : "text-muted-foreground"}`}
+            >
+              <span className="flex h-7 w-7 items-center justify-center rounded-full border">
+                {i < step ? <Check size={13} /> : i + 1}
+              </span>
+              <span>{title}</span>
+            </div>
+          ))}
+        </div>
+        <div
+          className="mt-4 grid grid-cols-3 gap-2"
+          role="progressbar"
+          aria-valuemin={1}
+          aria-valuemax={3}
+          aria-valuenow={step + 1}
+          aria-label="Progreso del reporte"
+        >
+          {[0, 1, 2].map((i) => (
+            <div key={i} className={`h-1 rounded ${i <= step ? "bg-primary" : "bg-border"}`} />
+          ))}
+        </div>
+      </div>
+      <form onSubmit={submit} noValidate className="space-y-6">
+        {step === 0 && (
+          <>
+            <Field id="tipo" label="¿Qué querés reportar?" error={errors.type}>
+              <select
+                id="tipo"
+                value={v.type}
+                onChange={(e) => set("type", e.target.value)}
+                required
+                aria-invalid={!!errors.type}
+              >
+                <option value="">Elegí una opción</option>
+                {DATA_TYPES.map((t) => (
+                  <option key={t}>{t}</option>
+                ))}
+              </select>
+            </Field>
+            <Field
+              id="valor"
+              label="Pegá acá el dato exacto"
+              help="Si es un teléfono, incluí el código de país (ejemplo: +54 9 11 1234 5678). Si es un usuario, copialo tal cual aparece."
+              error={errors.value}
+            >
+              <input
+                id="valor"
+                value={v.value}
+                onChange={(e) => set("value", e.target.value)}
+                maxLength={250}
+                required
+                aria-invalid={!!errors.value}
+                aria-describedby="valor-help"
+                placeholder="El número, link o usuario que querés reportar"
+              />
+            </Field>
+            <Field id="estafa" label="¿Qué tipo de estafa fue?" error={errors.scam}>
+              <select
+                id="estafa"
+                value={v.scam}
+                onChange={(e) => set("scam", e.target.value)}
+                required
+                aria-invalid={!!errors.scam}
+              >
+                <option value="">Elegí una opción</option>
+                {SCAM_TYPES.map((t) => (
+                  <option key={t}>{t}</option>
+                ))}
+              </select>
+            </Field>
+          </>
+        )}
+        {step === 1 && (
+          <>
+            <fieldset>
+              <legend className="mb-3 text-sm font-semibold">¿Por dónde te contactaron?</legend>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+                {CHANNELS.map((c) => (
+                  <label key={c} className="flex min-h-11 items-center gap-3 font-normal">
+                    <input
+                      type="checkbox"
+                      checked={v.channels.includes(c)}
+                      onChange={(e) =>
+                        set(
+                          "channels",
+                          e.target.checked ? [...v.channels, c] : v.channels.filter((x) => x !== c),
+                        )
+                      }
+                    />
+                    {c}
+                  </label>
+                ))}
+              </div>
+              {errors.channels && (
+                <p role="alert" className="text-xs text-danger">
+                  {errors.channels}
+                </p>
+              )}
+            </fieldset>
+            <div className="grid gap-6 sm:grid-cols-2">
+              <Field id="fecha" label="¿Cuándo pasó?" error={errors.date}>
+                <input
+                  id="fecha"
+                  type="date"
+                  max={today}
+                  value={v.date}
+                  onChange={(e) => set("date", e.target.value)}
+                  required
+                  aria-invalid={!!errors.date}
+                />
+              </Field>
+              <Field id="pais" label="¿En qué país estás?" error={errors.country}>
+                <select
+                  id="pais"
+                  value={v.country}
+                  onChange={(e) => set("country", e.target.value)}
+                  required
+                  aria-invalid={!!errors.country}
+                >
+                  <option value="">Elegí tu país</option>
+                  {COUNTRIES.map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+            <Field
+              id="descripcion"
+              label="Contanos brevemente qué pasó"
+              help="No escribas tu nombre, DNI ni datos de tus cuentas."
+              error={errors.description}
+            >
+              <textarea
+                id="descripcion"
+                rows={5}
+                maxLength={500}
+                value={v.description}
+                onChange={(e) => set("description", e.target.value)}
+                required
+                aria-invalid={!!errors.description}
+                aria-describedby="descripcion-help"
+              />
+              <span className="text-right text-xs text-muted-foreground" aria-live="polite">
+                {v.description.length}/500 caracteres
+              </span>
+            </Field>
+          </>
+        )}
+        {step === 2 && (
+          <>
+            <Field
+              id="evidencias"
+              label="¿Tenés capturas u otra evidencia?"
+              help="Tapá tus datos personales antes de subirlas. Hasta 5 imágenes, de hasta 3 MB cada una. No se muestran públicamente."
+              error={errors.evidence}
+            >
+              <div className="flex items-center gap-3">
+                <ImagePlus size={24} className="shrink-0 text-teal" />
+                <input
+                  id="evidencias"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  onChange={(e) => {
+                    files(e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+              </div>
+            </Field>
+            {evidence.length > 0 && (
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
+                {evidence.map((img, i) => (
+                  <div key={i} className="relative">
+                    <img
+                      src={img}
+                      alt={`Evidencia ${i + 1}`}
+                      className="aspect-square w-full rounded-md border object-cover"
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="icon"
+                      className="absolute top-1 right-1"
+                      aria-label={`Quitar evidencia ${i + 1}`}
+                      onClick={() => setEvidence((s) => s.filter((_, j) => j !== i))}
+                    >
+                      <X />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <Field
+              id="monto"
+              label="¿Perdiste dinero? ¿Cuánto, aproximadamente?"
+              help="Opcional. No ingreses números de tus cuentas."
+              error={errors.amount}
+            >
+              <div className="grid grid-cols-[1fr_100px] gap-3">
+                <input
+                  id="monto"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={v.amount}
+                  onChange={(e) => set("amount", e.target.value)}
+                  placeholder="Monto aproximado"
+                />
+                <select
+                  aria-label="Moneda"
+                  value={v.currency}
+                  onChange={(e) => set("currency", e.target.value)}
+                >
+                  {[
+                    "ARS",
+                    "USD",
+                    "EUR",
+                    "UYU",
+                    "CLP",
+                    "COP",
+                    "MXN",
+                    "PEN",
+                    "BRL",
+                    "USDT",
+                    "Otra",
+                  ].map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+            </Field>
+            <Field
+              id="contacto"
+              label="Si querés que te avisemos de novedades sobre este reporte, dejá tu email."
+              help="Opcional. Nunca se muestra públicamente. En la demostración no se envían emails."
+              error={errors.email}
+            >
+              <input
+                id="contacto"
+                type="email"
+                value={v.email}
+                onChange={(e) => set("email", e.target.value)}
+                placeholder="tu@email.com"
+                aria-invalid={!!errors.email}
+              />
+            </Field>
+            <div className="border-t pt-5">
+              <label className="flex min-h-11 items-start gap-3 font-normal">
+                <input
+                  type="checkbox"
+                  className="mt-1 shrink-0"
+                  checked={v.truth}
+                  onChange={(e) => set("truth", e.target.checked)}
+                />
+                <span>Confirmo que lo que escribí es verdad según mi experiencia.</span>
+              </label>
+              {errors.truth && (
+                <p role="alert" className="text-xs text-danger">
+                  {errors.truth}
+                </p>
+              )}
+            </div>
+          </>
+        )}
+        {submitError && (
+          <p role="alert" className="text-sm text-danger">
+            {submitError}
+          </p>
+        )}
+        <div className="flex justify-between gap-3 border-t pt-6">
+          {step > 0 ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setStep(step - 1);
+                setErrors({});
+              }}
+            >
+              <ArrowLeft />
+              Atrás
+            </Button>
+          ) : (
+            <Button type="button" variant="ghost" onClick={() => navigate({ to: "/" })}>
+              Cancelar
+            </Button>
+          )}
+          <Button type="submit" disabled={busy}>
+            {busy ? "Guardando…" : step === 2 ? "Enviar reporte" : "Continuar"}
+            <ArrowRight />
+          </Button>
+        </div>
+      </form>
+    </>
+  );
+}
